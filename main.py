@@ -9,6 +9,8 @@ from pydantic import BaseModel
 
 # Creating FastAPI instance
 app = FastAPI()
+
+
 # Creating class to define the request body
 # and the type hints of each attribute
 class HouseInfo(BaseModel):
@@ -27,6 +29,7 @@ class HouseInfo(BaseModel):
 
 # Loading model with default path models/model.pkl
 clf = joblib.load(os.environ.get("MODEL_PATH", "models/model.pkl"))
+
 
 # Creating an endpoint to receive the data
 # to make prediction on.

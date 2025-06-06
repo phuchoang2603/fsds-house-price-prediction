@@ -1,4 +1,4 @@
-name: new Release
+name: Build Docker image and Push to registry
 on:
   push:
     tags:
