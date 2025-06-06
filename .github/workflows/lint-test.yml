@@ -2,7 +2,11 @@ name: Linting and Test
 
 on:
   push:
+    paths:
+      - "app/**"
   pull_request:
+    paths:
+      - "app/**"
 
 jobs:
   lint:
