@@ -55,13 +55,20 @@ jobs:
         if: env.UPDATE_REQUIRED == 'false'
         run: echo "values.yaml is up to date. Skipping PR."
 
-      - name: Update and commit values.yaml
+      - name: Update Chart.yaml & values.yaml with version and commit them
         if: env.UPDATE_REQUIRED == 'true'
         run: |
+          CHART_FILE=deployments/helm/Chart.yaml
+          VALUE_FILE=deployments/helm/values.yaml
+
+          yq eval ".version = \"${VERSION#v}\" |
+                   .appVersion = \"${VERSION#v}\"" \
+                   -i "$CHART_FILE"
+
           yq eval ".image.repository = \"$Repository\" |
                    .image.tag = \"$VERSION\"" \
-                   -i deployments/helm/values.yaml
+                   -i "$VALUE_FILE"
 
-          git add deployments/helm/values.yaml
-          git commit -m "ci: update Helm values.yaml to $Repository:$VERSION"
+          git add "$CHART_FILE" "$VALUE_FILE"
+          git commit -m "ci: update Helm values.yaml and Chart.yaml to $Repository:$VERSION"
           git push origin main
