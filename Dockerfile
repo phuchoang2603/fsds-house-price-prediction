@@ -4,9 +4,12 @@ FROM ghcr.io/astral-sh/uv:python3.8-bookworm
 WORKDIR /app
 
 # Copy project files
-COPY ./main.py .
-COPY ./requirements.txt .
-COPY ./models ./models
+COPY ./app /app
+COPY ./requirements.txt /app
+COPY ./models /app/models
+
+# Set MODEL_DIR env variable
+ENV MODEL_PATH /app/models/model.pkl
 
 # Expose port for documentation
 EXPOSE 30000
