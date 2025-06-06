@@ -55,30 +55,13 @@ jobs:
         if: env.UPDATE_REQUIRED == 'false'
         run: echo "values.yaml is up to date. Skipping PR."
 
-      - name: Create branch and update values.yaml
+      - name: Update and commit values.yaml
         if: env.UPDATE_REQUIRED == 'true'
         run: |
-          BRANCH=update/helm-values-${{ env.VERSION }}
-          git checkout -b $BRANCH
-
           yq eval ".image.repository = \"$Repository\" |
                    .image.tag = \"$VERSION\"" \
                    -i deployments/helm/values.yaml
 
           git add deployments/helm/values.yaml
-          git commit -m "ci: update Helm image to $Repository:$VERSION"
-          git push origin $BRANCH
-
-      - name: Create Pull Request
-        if: env.UPDATE_REQUIRED == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          title: "ci: update Helm values to ${{ env.VERSION }}"
-          body: |
-            This PR updates the image tag in `values.yaml` to match the latest published Docker image:
-            ```
-            Repository: ${{ env.Repository }}
-            Tag:        ${{ env.VERSION }}
-            ```
-          head: update/helm-values-${{ env.VERSION }}
-          base: main
+          git commit -m "ci: update Helm values.yaml to $Repository:$VERSION"
+          git push origin main

@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "*.md"
+    paths:
+      - pyproject.toml
 
 jobs:
   release:
@@ -21,6 +21,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Check if pyproject.toml version changed
+        id: check
+        run: |
+          git diff HEAD^ HEAD pyproject.toml | grep "^+version" || echo "NO_VERSION_CHANGE=true" >> $GITHUB_ENV
+
+      - name: Exit if no version change
+        if: env.NO_VERSION_CHANGE == 'true' && github.ref_type != 'tag'
+        run: |
+          echo "No version change in pyproject.toml. Skipping workflow."
+          exit 0
 
       - name: Extract version from pyproject.toml
         id: version
