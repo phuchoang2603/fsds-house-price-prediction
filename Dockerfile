@@ -1,24 +1,18 @@
-FROM python:3.8
+FROM ghcr.io/astral-sh/uv:python3.8-bookworm
 
-# Create a folder /app if it doesn't exist,
-# the /app folder is the current working directory
+# Set working directory
 WORKDIR /app
 
-# Copy necessary files to our app
-COPY ./main.py /app
+# Copy project files
+COPY ./main.py .
+COPY ./requirements.txt .
+COPY ./models ./models
 
-COPY ./requirements.txt /app
-
-COPY ./models /app/models
-
-# Set MODEL_DIR env variable
-ENV MODEL_PATH /app/models/model.pkl
-
-# Port will be exposed, for documentation only
+# Expose port for documentation
 EXPOSE 30000
 
-# Disable pip cache to shrink the image size a little bit,
-# since it does not need to be re-installed
-RUN pip install -r requirements.txt --no-cache-dir
+# Install dependencies using uv (this uses the system Python environment)
+RUN uv pip install --system -r requirements.txt
 
+# Run the app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "30000"]
