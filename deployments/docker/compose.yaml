@@ -1,0 +1,7 @@
+services:
+  hpp:
+    build:
+      context: ../.. # root of the repo
+      dockerfile: ./deployments/docker/Dockerfile
+    ports:
+      - "30000:30000"
