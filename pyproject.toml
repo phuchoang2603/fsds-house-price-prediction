@@ -1,5 +1,5 @@
 [project]
-name = "01-11-fastapi-house-price-prediction"
+name = "fastapi-house-price-prediction"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

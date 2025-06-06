@@ -3,7 +3,7 @@ revision = 2
 requires-python = ">=3.10"
 
 [[package]]
-name = "01-11-fastapi-house-price-prediction"
+name = "fastapi-house-price-prediction"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
