@@ -1,4 +1,4 @@
-name: Update Helm Values & Open PR
+name: Update Helm Values
 
 on:
   workflow_run:
@@ -7,7 +7,7 @@ on:
       - completed
 
 jobs:
-  update-values-and-pr:
+  update-values:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
