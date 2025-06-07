@@ -6,7 +6,7 @@ on:
       - pyproject.toml
 
 jobs:
-  build-push:
+  build-and-push:
     name: Build & Push to GHCR using pyproject version
     runs-on: ubuntu-latest
     permissions:
