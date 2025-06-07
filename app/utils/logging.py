@@ -12,8 +12,6 @@ def _init_logger(name: str):
         Logger: A logger object
     """
     logger = logging.getLogger(name)
-    # Set logger level to INFO to capture logs at all levels from INFO to lower
-    # Remember DEBUG -> INFO -> WARNING -> ERROR -> CRITICAL
     logger.setLevel(logging.INFO)
     # Explicitly set the output of the logger to stdout,
     # this is the default stream for normal program output.
@@ -21,7 +19,8 @@ def _init_logger(name: str):
     handler = logging.StreamHandler(sys.stdout)
     # Format the log message
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(module)s - %(levelname)s - %(message)s"
+        '%(levelname)s:     %(name)s:%(module)s - "%(message)s"',
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     handler.setFormatter(formatter)
     # Add the handler to the logger

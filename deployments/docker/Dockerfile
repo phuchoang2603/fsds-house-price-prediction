@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.8-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.8-bookworm
 
 # Set working directory
 WORKDIR /app
