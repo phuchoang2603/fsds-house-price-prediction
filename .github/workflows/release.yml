@@ -17,10 +17,20 @@ jobs:
       - name: Check if pyproject.toml version changed
         id: check
         run: |
-          if git diff HEAD^ HEAD pyproject.toml | grep -q '^+version'; then
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            DIFF=$(git diff -U0 HEAD^ -- pyproject.toml)
+          else
+            DIFF=$(git show HEAD:pyproject.toml)
+          fi
+
+          echo "DIFF=$DIFF"
+
+          if echo "$DIFF" | grep -E '^+\s*version\s*='; then
             echo "should_skip=false" >> $GITHUB_OUTPUT
+            echo "Detected version change. should_skip=false"
           else
             echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "No version change found. should_skip=true"
           fi
 
   build-and-push:
