@@ -9,7 +9,6 @@ on:
 jobs:
   lint:
     name: Lint with Flake8
-    if: contains(join(github.event.pull_request.changed_files.*.filename), 'app/')
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +34,6 @@ jobs:
 
   unit-test:
     name: Run Unit Tests
-    if: contains(join(github.event.pull_request.changed_files.*.filename), 'app/')
     runs-on: ubuntu-latest
 
     steps:
