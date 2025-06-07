@@ -6,8 +6,37 @@ on:
       - pyproject.toml
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.check.outputs.should_skip }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if pyproject.toml version changed
+        id: check
+        run: |
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            DIFF=$(git diff -U0 HEAD^ -- pyproject.toml)
+          else
+            DIFF=$(git show HEAD:pyproject.toml)
+          fi
+
+          echo "DIFF=$DIFF"
+
+          if echo "$DIFF" | grep -E '^+\s*version\s*='; then
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+            echo "Detected version change. should_skip=false"
+          else
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "No version change found. should_skip=true"
+          fi
+
   build-and-push:
     name: Build & Push to GHCR using pyproject version
+    needs: check-version
+    if: needs.check-version.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,17 +49,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Check if pyproject.toml version changed
-        id: check
-        run: |
-          git diff HEAD^ HEAD pyproject.toml | grep "^+version" || echo "NO_VERSION_CHANGE=true" >> $GITHUB_ENV
-
-      - name: Exit if no version change
-        if: env.NO_VERSION_CHANGE == 'true' && github.ref_type != 'tag'
-        run: |
-          echo "No version change in pyproject.toml. Skipping workflow."
-          exit 0
 
       - name: Extract version from pyproject.toml
         id: version
@@ -67,7 +85,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: '${{ github.head_ref || github.ref_name }}'
+          ref: "${{ github.head_ref || github.ref_name }}"
           fetch-depth: 0 # important for PR creation
 
       - name: Set up Git config

@@ -3,17 +3,35 @@ import sys
 import os
 import json
 from logging import Formatter
+from contextvars import ContextVar
+
+request_id_ctx_var: ContextVar[str] = ContextVar("request_id", default="unknown")
+
+
+def set_request_id(request_id: str):
+    request_id_ctx_var.set(request_id)
+
+
+def get_request_id() -> str:
+    return request_id_ctx_var.get()
+
+
+class RequestIDFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = get_request_id()
+        return True
 
 
 class CustomJsonFormatter(Formatter):
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         json_record = {
             "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S.%fZ"),
             "message": record.getMessage(),
             "level": record.levelname,
+            "request_id": getattr(record, "request_id", "unknown"),
         }
 
-        optional_fields = ["duration_ms", "request_id", "req", "res", "error"]
+        optional_fields = ["req", "res", "error"]
 
         for field in optional_fields:
             value = record.__dict__.get(field)
@@ -37,6 +55,7 @@ def _init_logger():
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(CustomJsonFormatter())
+    handler.addFilter(RequestIDFilter())
     logger.handlers = [handler]
 
     # Disable Uvicorn access log
