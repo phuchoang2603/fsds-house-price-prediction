@@ -2,8 +2,9 @@ name: Linting and Test
 
 on:
   pull_request:
-    paths:
-      - "app/**"
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
 
 jobs:
   lint:
