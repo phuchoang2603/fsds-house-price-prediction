@@ -12,8 +12,6 @@ app = FastAPI()
 
 # Loading model with default path models/model.pkl
 clf = joblib.load(os.environ.get("MODEL_PATH", "../models/model.pkl"))
-
-
 # Creating an endpoint to receive the data
 # to make prediction on
 @app.post("/predict", response_model=HousePrediction)
