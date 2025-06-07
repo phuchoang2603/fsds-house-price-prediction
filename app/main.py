@@ -8,8 +8,8 @@ from fastapi.encoders import jsonable_encoder
 from schema import HouseInfo, HousePrediction
 from utils.data_processing import format_input_data
 from utils.logging import logger
-from utils.middleware import LogMiddleware
-from utils.middleware import RequestIDMiddleware
+from utils.middleware import LogMiddleware, RequestIDMiddleware
+from utils.metrics import request_counter, predict_duration
 
 app = FastAPI()
 app.add_middleware(RequestIDMiddleware)
@@ -37,6 +37,12 @@ def predict(data: HouseInfo, request: Request):
         price = clf.predict(formatted_data)[0]
         duration = round((time.time() - start_time) * 1000, 2)
 
+        # Record OTEL metrics
+        request_counter.add(
+            1, {"method": "POST", "endpoint": "/predict", "http_status": "200"}
+        )
+        predict_duration.record(duration, {"endpoint": "/predict"})
+
         logger.info(f"predict_success price={price:.2f} duration={duration}ms")
 
         return HousePrediction(Price=price)
@@ -48,6 +54,12 @@ def predict(data: HouseInfo, request: Request):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Record OTEL metrics
+    request_counter.add(
+        1,
+        {"method": request.method, "endpoint": request.url.path, "http_status": "422"},
+    )
+
     logger.error(
         "Validation failed",
         extra={
