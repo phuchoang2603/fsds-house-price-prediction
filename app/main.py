@@ -2,6 +2,9 @@ import os
 import time
 import joblib
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from schema import HouseInfo, HousePrediction
 from utils.data_processing import format_input_data
 from utils.logging import logger
@@ -25,32 +28,44 @@ def predict(data: HouseInfo, request: Request):
 
     try:
         logger.info(
-            f"predict_received lotarea={data.LotArea} yearbuilt={data.YearBuilt} zoning={data.MSZoning}",
-            extra={"request_id": request.state.request_id},
+            f"predict_received lotarea={data.LotArea} yearbuilt={data.YearBuilt} zoning={data.MSZoning}"
         )
 
         formatted_data = format_input_data(data)
-        logger.debug(
-            f"Formatted input: {formatted_data.values.tolist()}",
-            extra={"request_id": request.state.request_id},
-        )
+        logger.debug(f"{formatted_data.values.tolist()}")
 
         price = clf.predict(formatted_data)[0]
         duration = round((time.time() - start_time) * 1000, 2)
 
-        logger.info(
-            f"predict_success price={price:.2f} duration={duration}ms",
-            extra={"duration_ms": duration, "request_id": request.state.request_id},
-        )
+        logger.info(f"predict_success price={price:.2f} duration={duration}ms")
 
         return HousePrediction(Price=price)
 
     except Exception as e:
-        logger.exception(
-            f"predict_failed error={str(e)}",
-            extra={"request_id": request.state.request_id},
-        )
+        logger.exception(f"predict_failed error={str(e)}")
         raise
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.error(
+        "Validation failed",
+        extra={
+            "error": jsonable_encoder(exc.errors()),
+            "req": {
+                "method": request.method,
+                "url": str(request.url),
+                "client": request.client.host,
+            },
+            "res": {
+                "status_code": 422,
+            },
+        },
+    )
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 
 
 if __name__ == "__main__":
